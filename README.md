@@ -106,7 +106,7 @@ docker run -it --rm -v %cd%:/spark-monitoring -v "%USERPROFILE%/.m2":/root/.m2 -
 
 Copy the JAR files and init scripts to Databricks.
 
-1. Use the Azure Databricks CLI to create a workspace directory named **/databricks/spark-monitoring** for the init script and a DBfS directory named **dbfs:/databricks/spark-monitoring** for the JAR:
+1. Use the Azure Databricks CLI to create a workspace directory named **/databricks/spark-monitoring** for the init script and a DBFS directory named **dbfs:/databricks/spark-monitoring** for the JAR:
 
     ```bash
     databricks workspace mkdirs /databricks/spark-monitoring
