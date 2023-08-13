@@ -30,9 +30,9 @@ The **perftools** directory contains details on how to use Azure Monitor with Gr
 Before you begin, ensure you have the following prerequisites in place:
 
 * Clone this GitHub repository and switch to this branch (`git switch l4jv2`).
-* An active Azure Databricks workspace. For instructions on how to deploy an Azure Databricks workspace, see [get started with Azure Databricks.](https://docs.microsoft.com/azure/azure-databricks/quickstart-create-databricks-workspace-portal).
-* Install the [Azure Databricks CLI](https://docs.microsoft.com/azure/databricks/dev-tools/cli/#install-the-cli).
-  * An Azure Databricks personal access token or Azure AD token is required to use the CLI. For instructions, see [Set up authentication](https://docs.microsoft.com/azure/databricks/dev-tools/cli/#--set-up-authentication).
+* An active Azure Databricks workspace. For instructions on how to deploy an Azure Databricks workspace, see [get started with Azure Databricks.](https://learn.microsoft.com/en-us/azure/databricks/getting-started/#use-the-portal-to-create-an-azure-databricks-workspace).
+* Install the [Azure Databricks CLI](https://learn.microsoft.com/en-us/azure/databricks/dev-tools/cli/databricks-cli#install-the-cli).
+  * Authentication is reqiured to use the CLI. Set up one of the unified authentication methods, such as Azure Databricks personal access token authentication. For instructions, see [Set up authentication](https://learn.microsoft.com/en-us/azure/databricks/dev-tools/cli/databricks-cli#--set-up-authentication).
   * You can also use the Azure Databricks CLI from the Azure Cloud Shell.
 * A Java IDE, with the following resources:
   * [Java Development Kit (JDK) version 1.8](https://www.oracle.com/technetwork/java/javase/downloads/index.html)
@@ -43,8 +43,8 @@ Before you begin, ensure you have the following prerequisites in place:
 
 | Databricks Runtime(s) | Maven Profile |
 | -- | -- |
-| `11.3LTS` | `scala-2.12_spark-3.3.0` |  
-| `12.2LTS` | `scala-2.12_spark-3.3.2` |  
+| `11.3LTS` | `dbr-11.3-lts` |  
+| `12.2LTS` | `dbr-12.2-lts` |  
 
 To add a new DBR versions, add a new profile in the pom.xml file
 
@@ -106,10 +106,11 @@ docker run -it --rm -v %cd%:/spark-monitoring -v "%USERPROFILE%/.m2":/root/.m2 -
 
 Copy the JAR files and init scripts to Databricks.
 
-1. Use the Azure Databricks CLI to create a directory named **dbfs:/databricks/spark-monitoring**:
+1. Use the Azure Databricks CLI to create a workspace directory named **/databricks/spark-monitoring** for the init script and a DBfS directory named **dbfs:/databricks/spark-monitoring** for the JAR:
 
     ```bash
-    dbfs mkdirs dbfs:/databricks/spark-monitoring
+    databricks workspace mkdirs /databricks/spark-monitoring
+    databricks fs mkdirs dbfs:/databricks/spark-monitoring
     ```
 
 1. Open the **src/scripts/spark-monitoring.sh** script file and add your [Log Analytics Workspace ID and Key](http://docs.microsoft.com/azure/azure-monitor/platform/agent-windows#obtain-workspace-id-and-key) to the lines below:
@@ -139,13 +140,13 @@ Now the _ResourceId **/subscriptions/11111111-5c17-4032-ae54-fc33d56047c2/resour
 1. Use the Azure Databricks CLI to copy **src/scripts/spark-monitoring.sh** to the directory created in step 3:
 
     ```bash
-    dbfs cp src/scripts/spark-monitoring.sh dbfs:/databricks/spark-monitoring/spark-monitoring.sh
+    databricks workspace import /databricks/spark-monitoring/spark-monitoring.sh --format "AUTO" --content "$(base64 src/scripts/spark-monitoring.sh)" --overwrite
     ```
 
 1. Use the Azure Databricks CLI to copy the jar file from the **target/** folder to the directory created in step 3:
 
     ```bash
-    dbfs cp --overwrite target/spark-monitoring_1.0.0.jar dbfs:/databricks/spark-monitoring/
+    databricks fs cp --overwrite target/spark-monitoring_1.0.0.jar dbfs:/databricks/spark-monitoring/
     ```
 
 ### Create and configure the Azure Databricks cluster
@@ -155,7 +156,7 @@ Now the _ResourceId **/subscriptions/11111111-5c17-4032-ae54-fc33d56047c2/resour
 1. Choose a name for your cluster and enter it in "Cluster name" text box.
 1. In the "Databricks Runtime Version" dropdown, select **Runtime: 11.3 LTS (Scala 2.12, Spark 3.3.1)**.
 1. Under "Advanced Options", click on the "Spark" tab. Add env variables for LOG_ANALYTICS_WORKSPACE_KEY and LOG_ANALYTICS_WORKSPACE_KEY. Use this step if you haven't set those variables in the init script
-1. Under "Advanced Options", click on the "Init Scripts" tab. Go to the last line under the "Init Scripts section" Under the "destination" dropdown, select "DBFS". Enter "dbfs:/databricks/spark-monitoring/spark-monitoring.sh" in the text box. Click the "add" button.
+1. Under "Advanced Options", click on the "Init Scripts" tab. Go to the last line under the "Init Scripts section" Under the "destination" dropdown, select "Workspace". Enter "/databricks/spark-monitoring/spark-monitoring.sh" in the text box. Click the "add" button.
 1. Click the "Create Cluster" button to create the cluster. Next, click on the "start" button to start the cluster.
 
 ## Run the sample job (optional)
